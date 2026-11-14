@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Financial tips{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Financial tips</h1><p class="text-muted">Simple tips based on your own recorded income, spending, budget and savings.</p>
+<div class="row justify-content-start"><div class="col-lg-8">
+{% for t in tips %}<div class="alert alert-{{ t.level }}"><div class="fw-bold">{{ t.title }}</div>{{ t.text }}</div>{% endfor %}
+<p class="small text-muted">PesaWise tips come from fixed rules, not from a professional financial adviser. Use them as prompts to review your habits, not as financial advice.</p>
+</div></div>
+{% endblock %}

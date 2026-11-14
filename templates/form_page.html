@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-6 col-xl-5">
+  <h1 class="h3 mb-3">{{ title }}</h1>
+  {% if note %}<p class="text-muted">{{ note }}</p>{% endif %}
+  <div class="card"><div class="card-body">
+    <form method="post" novalidate>{% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      {% include 'includes/_form.html' %}
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary">{{ submit_label|default:"Save" }}</button>
+        {% if save_another %}<button type="submit" name="save_another" value="1" class="btn btn-outline-primary">Save and add another</button>{% endif %}
+        <a href="{% url cancel_url %}" class="btn btn-light">Cancel</a>
+      </div>
+    </form>
+  </div></div>
+</div></div>
+{% endblock %}
