@@ -1,17 +1,17 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
 from django.shortcuts import render
 from django.utils import timezone
-from django.utils.dateparse import parse_date
 
 from advisor.rules import generate_tips
 from budgets.models import Budget
-from core.utils import ZERO, money, month_range, week_range
+from core.utils import month_range
 from expenses.models import Expense
 from income.models import Income
 from savings.models import SavingsContribution, SavingsGoal
 
 from . import services as svc
+from .exports import report_csv_response, report_pdf_response
+from .reports import build_report
 
 
 def _recent_transactions(user, limit=10):
@@ -62,47 +62,16 @@ def home(request):
         "has_data": bool(cards["income"] or cards["expenses"])})
 
 
-REPORT_KINDS = [("daily", "Daily summary"), ("weekly", "Weekly summary"), ("monthly", "Monthly summary"),
-                ("income", "Income report"), ("expense", "Expense report"), ("savings", "Savings report"),
-                ("budget", "Budget performance")]
+@login_required
+def reports(request):
+    return render(request, "dashboard/report.html", build_report(request.user, request.GET))
 
 
 @login_required
-def reports(request):
-    user, today = request.user, timezone.localdate()
-    kind = request.GET.get("kind", "monthly")
-    if kind not in dict(REPORT_KINDS):
-        kind = "monthly"
-    anchor = min(parse_date(request.GET.get("date", "") or "") or today, today)
-    if kind == "daily":
-        start = end = anchor
-    elif kind == "weekly":
-        start, end = week_range(anchor)
-    elif kind in ("monthly", "budget"):
-        start, end = month_range(anchor.year, anchor.month)
-    else:
-        ms, me = month_range(today.year, today.month)
-        start = parse_date(request.GET.get("start", "") or "") or ms
-        end = parse_date(request.GET.get("end", "") or "") or me
-        if end < start:
-            start, end = end, start
-    inc, exp, sav = (svc.total_income(user, start, end), svc.total_expenses(user, start, end),
-                     svc.total_savings_transfers(user, start, end))
-    expenses = Expense.objects.filter(user=user, expense_date__gte=start, expense_date__lte=end).select_related("category")
-    unplanned = money(expenses.filter(is_planned=False).aggregate(t=Sum("amount"))["t"])
-    budget = Budget.objects.filter(user=user, month=start.month, year=start.year).first() if kind == "budget" else None
-    ctx = {
-        "kinds": REPORT_KINDS, "kind": kind, "kind_label": dict(REPORT_KINDS)[kind], "anchor": anchor,
-        "start": start, "end": end, "income_total": inc, "expense_total": exp, "savings_total": sav,
-        "net": money(inc - exp - sav), "unplanned_total": unplanned,
-        "by_category": svc.spending_by_category(user, start, end), "by_source": svc.income_by_source(user, start, end),
-        "expenses": expenses[:200], "expense_count": expenses.count(),
-        "incomes": Income.objects.filter(user=user, date_received__gte=start, date_received__lte=end).select_related("source")[:200],
-        "contributions": SavingsContribution.objects.filter(
-            goal__user=user, contribution_date__gte=start, contribution_date__lte=end).select_related("goal"),
-        "goals": SavingsGoal.objects.filter(user=user),
-        "per_day": svc.daily_series(user, start, end) if kind in ("weekly", "monthly") else [],
-        "budget": budget, "prog": svc.budget_progress(budget) if budget else None,
-        "summary": svc.daily_summary(user, start) if kind == "daily" else None,
-    }
-    return render(request, "dashboard/report.html", ctx)
+def report_export_csv(request):
+    return report_csv_response(build_report(request.user, request.GET), request.user)
+
+
+@login_required
+def report_export_pdf(request):
+    return report_pdf_response(build_report(request.user, request.GET), request.user)
