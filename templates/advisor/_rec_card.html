@@ -1,0 +1,39 @@
+{% load money %}{% with r=item.rec o=item.outcome %}
+<div class="card mb-3 {% if r.priority == 'HIGH' and r.status == 'PENDING' %}border-danger{% endif %}"><div class="card-body">
+  <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
+    <h3 class="h5 mb-0">{{ r.title }}</h3>
+    <div class="d-flex gap-1 flex-wrap align-items-start">
+      <span class="badge text-bg-{% if r.priority == 'HIGH' %}danger{% elif r.priority == 'MEDIUM' %}warning{% else %}secondary{% endif %}">{{ r.get_priority_display }} priority</span>
+      <span class="badge text-bg-light border" title="{{ r.confidence_note }}">{{ r.get_confidence_display }} confidence</span>
+      <span class="badge text-bg-{% if r.status == 'ACCEPTED' %}primary{% elif r.status == 'COMPLETED' %}success{% elif r.status == 'DISMISSED' %}dark{% else %}light border{% endif %}">{{ r.get_status_display }}</span>
+    </div></div>
+  <p class="mb-2">{{ r.observation }}</p>
+  <dl class="row small mb-2">
+    <dt class="col-sm-3">Evidence</dt><dd class="col-sm-9">{{ r.evidence }}</dd>
+    <dt class="col-sm-3">Why it matters</dt><dd class="col-sm-9">{{ r.explanation }}</dd>
+    <dt class="col-sm-3">Suggested action</dt><dd class="col-sm-9">{{ r.action }}</dd>
+    {% if r.suggested_amount %}<dt class="col-sm-3">Suggested amount</dt><dd class="col-sm-9">{{ r.suggested_amount|kes }}</dd>{% endif %}
+    {% if r.estimated_impact %}<dt class="col-sm-3">Estimated impact</dt><dd class="col-sm-9">{{ r.estimated_impact }}</dd>{% endif %}
+    <dt class="col-sm-3">Confidence</dt><dd class="col-sm-9">{{ r.get_confidence_display }}. {{ r.confidence_note }}</dd>
+    <dt class="col-sm-3">Generated / review</dt><dd class="col-sm-9">{{ r.generated_on|date:"d M Y" }} · review by {{ r.review_date|date:"d M Y" }}{% if r.is_overdue_for_review %} <span class="badge text-bg-warning">Due for review</span>{% endif %}</dd>
+  </dl>
+  {% if o %}<div class="alert alert-info py-2 small mb-2"><strong>What happened since:</strong> {{ o.text }}</div>{% endif %}
+  <div class="d-flex flex-wrap gap-2 align-items-center">
+    {% if r.status == 'PENDING' %}
+      <form method="post" action="{% url 'advisor:recommendation_status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="ACCEPTED"><button class="btn btn-sm btn-primary">Accept</button></form>
+      <form method="post" action="{% url 'advisor:recommendation_status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="DISMISSED"><button class="btn btn-sm btn-outline-secondary">Dismiss</button></form>
+    {% elif r.status == 'ACCEPTED' %}
+      <form method="post" action="{% url 'advisor:recommendation_status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="COMPLETED"><button class="btn btn-sm btn-success">Mark completed</button></form>
+      <form method="post" action="{% url 'advisor:recommendation_status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="DISMISSED"><button class="btn btn-sm btn-outline-secondary">Dismiss</button></form>
+    {% else %}
+      <form method="post" action="{% url 'advisor:recommendation_status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="PENDING"><button class="btn btn-sm btn-outline-primary">Reopen</button></form>
+    {% endif %}
+    <span class="ms-auto small text-muted d-flex align-items-center gap-2">Was this useful?
+      {% if r.useful is None %}
+        <form method="post" action="{% url 'advisor:recommendation_feedback' r.pk %}">{% csrf_token %}<input type="hidden" name="useful" value="yes"><button class="btn btn-sm btn-light" aria-label="Useful"><i class="bi bi-hand-thumbs-up"></i></button></form>
+        <form method="post" action="{% url 'advisor:recommendation_feedback' r.pk %}">{% csrf_token %}<input type="hidden" name="useful" value="no"><button class="btn btn-sm btn-light" aria-label="Not useful"><i class="bi bi-hand-thumbs-down"></i></button></form>
+      {% else %}<strong>{% if r.useful %}Yes{% else %}No{% endif %}</strong> (thanks!){% endif %}
+    </span>
+  </div>
+</div></div>
+{% endwith %}

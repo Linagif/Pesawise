@@ -33,10 +33,14 @@ class UserModelForm(forms.ModelForm):
 class CategoryForm(UserModelForm):
     class Meta:
         model = Category
-        fields = ["name", "category_type"]
+        fields = ["name", "category_type", "spending_type"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["category_type"].choices = [(Category.EXPENSE, "Expense category"),
                                                 (Category.INCOME, "Income source")]
         self.fields["category_type"].label = "Type"
+        self.fields["spending_type"].required = False          # omitted -> model default (discretionary)
+        self.fields["spending_type"].label = "Kind of spending"
+        self.fields["spending_type"].help_text = ("Needs (rent, food, transport...) or wants. "
+                                                  "Used by the Financial Health page. Ignored for income sources.")

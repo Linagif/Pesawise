@@ -24,4 +24,5 @@ urlpatterns = [
     path("savings/", include("savings.urls")),
     path("tips/", include("advisor.urls")),
     path("categories/", include("core.urls")),
+    path("import/", include("imports.urls")),
 ]

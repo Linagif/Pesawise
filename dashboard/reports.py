@@ -1,5 +1,7 @@
 """Builds the data for a report. Used by the HTML page AND by the CSV/PDF exports,
 so the three can never disagree with each other."""
+from decimal import Decimal
+
 from django.db.models import Sum
 from django.utils import timezone
 

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "savings",
     "dashboard",
     "advisor",
+    "imports",
 ]
 
 MIDDLEWARE = [
@@ -118,3 +119,11 @@ if not DEBUG:
 import sys  # noqa: E402
 if "test" in sys.argv:
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
+# ---- Field-level encryption keys (see core/encryption.py). Set real values in the environment in production. ----
+FIELD_ENCRYPTION_KEYS = [k.strip() for k in os.environ.get("FIELD_ENCRYPTION_KEYS", "").split(",") if k.strip()]
+FIELD_INDEX_KEY = os.environ.get("FIELD_INDEX_KEY", "")
+if "test" in sys.argv:      # throw-away keys, tests only
+    FIELD_ENCRYPTION_KEYS = ["Zm9yLXRlc3RzLW9ubHktbm90LWEtcmVhbC1rZXktMTIzNDU="]
+    FIELD_INDEX_KEY = "test-index-key"

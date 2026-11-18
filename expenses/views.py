@@ -6,10 +6,9 @@ from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.utils.dateparse import parse_date
 
 from core.templatetags.money import kes
-from core.utils import money, safe_next
+from core.utils import money, safe_date, safe_next
 from dashboard import services
 
 from .forms import ExpenseFilterForm, ExpenseForm
@@ -58,7 +57,7 @@ def expense_list(request):
 @login_required
 def expense_daily(request):
     today = timezone.localdate()
-    day = parse_date(request.GET.get("date", "") or "") or today
+    day = safe_date(request.GET.get("date")) or today
     day = min(day, today)
     items = Expense.objects.filter(user=request.user, expense_date=day).select_related("category")
     return render(request, "expenses/daily.html", {

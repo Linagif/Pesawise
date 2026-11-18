@@ -96,6 +96,72 @@ class DashboardViewTests(BaseTestCase):
         r = self.client.get(reverse("dashboard:home"))
         self.assertContains(r, "Let's set up your money picture")
 
+    def test_impossible_dates_in_url_do_not_crash(self):
+        for url in (reverse("dashboard:reports") + "?kind=daily&date=2020-13-45", reverse("expenses:daily") + "?date=2021-02-31"):
+            self.assertEqual(self.client.get(url).status_code, 200, url)
+
     def test_custom_404_page(self):
         r = self.client.get("/definitely/not/here/")
         self.assertEqual(r.status_code, 404)
+
+
+class ExportTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.income(10000)
+        self.expense(250.50, desc="Lunch at campus")
+        self.expense(100, desc="=HYPERLINK(\"http://evil.example\")")        # a formula-injection attempt
+        self.expense(9999, user=self.other, desc="BobSecretPurchase")
+
+    def csv(self, **params):
+        return self.client.get(reverse("dashboard:report_csv"), {"kind": "expense", **params})
+
+    def test_csv_download_headers_and_content(self):
+        r = self.csv()
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r["Content-Type"].startswith("text/csv"))
+        self.assertIn("attachment; filename=", r["Content-Disposition"])
+        self.assertIn(".csv", r["Content-Disposition"])
+        text = r.content.decode("utf-8-sig")
+        self.assertIn("Lunch at campus", text)
+        self.assertIn("250.50", text)                      # plain number, 2 d.p., no currency text
+        self.assertIn("Expenses,350.50", text)             # summary total
+        self.assertNotIn("BobSecretPurchase", text)        # data isolation
+
+    def test_csv_neutralises_formula_injection(self):
+        text = self.csv().content.decode("utf-8-sig")
+        self.assertIn("'=HYPERLINK", text)
+        self.assertNotIn(",=HYPERLINK", text)
+
+    def test_csv_for_every_report_kind(self):
+        for kind in ["daily", "weekly", "monthly", "income", "expense", "savings", "budget"]:
+            r = self.client.get(reverse("dashboard:report_csv"), {"kind": kind})
+            self.assertEqual(r.status_code, 200, kind)
+
+    def test_pdf_is_a_real_pdf_for_every_kind(self):
+        for kind in ["daily", "weekly", "monthly", "income", "expense", "savings", "budget"]:
+            r = self.client.get(reverse("dashboard:report_pdf"), {"kind": kind})
+            self.assertEqual(r.status_code, 200, kind)
+            self.assertEqual(r["Content-Type"], "application/pdf")
+            self.assertTrue(r.content.startswith(b"%PDF"), kind)
+
+    def test_pdf_survives_special_characters(self):
+        self.expense(5, desc="<b>Tea & <i>mandazi</i></b> & 'quotes'")
+        r = self.client.get(reverse("dashboard:report_pdf"), {"kind": "expense"})
+        self.assertEqual(r.status_code, 200)
+
+    def test_export_respects_period_and_bad_input(self):
+        r = self.client.get(reverse("dashboard:report_csv"), {"kind": "expense", "start": "garbage", "end": "2020-13-45"})
+        self.assertEqual(r.status_code, 200)
+
+    def test_exports_require_login(self):
+        self.client.logout()
+        for name in ("dashboard:report_csv", "dashboard:report_pdf"):
+            r = self.client.get(reverse(name))
+            self.assertEqual(r.status_code, 302)
+            self.assertIn("/accounts/login/", r["Location"])
+
+    def test_report_page_has_download_buttons_keeping_filters(self):
+        r = self.client.get(reverse("dashboard:reports"), {"kind": "expense"})
+        self.assertContains(r, "Download CSV")
+        self.assertContains(r, "export/pdf/?kind=expense")

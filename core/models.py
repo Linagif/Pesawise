@@ -20,10 +20,16 @@ class Category(models.Model):
     SAVINGS = "SAVINGS"
     TYPE_CHOICES = [(INCOME, "Income source"), (EXPENSE, "Expense category"), (SAVINGS, "Savings")]
 
+    ESSENTIAL = "ESSENTIAL"
+    DISCRETIONARY = "DISCRETIONARY"
+    SPENDING_CHOICES = [(ESSENTIAL, "Essential (needs)"), (DISCRETIONARY, "Discretionary (wants)")]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
                              on_delete=models.CASCADE, related_name="categories")
     name = models.CharField(max_length=60)
     category_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    # Only meaningful for EXPENSE categories: used by the Financial Health analysis.
+    spending_type = models.CharField(max_length=15, choices=SPENDING_CHOICES, default=DISCRETIONARY)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = CategoryQuerySet.as_manager()

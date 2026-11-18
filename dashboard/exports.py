@@ -34,7 +34,7 @@ def report_csv_response(ctx, user):
         w.writerow([title])
         w.writerow(header)
         for row in rows:
-            w.writerow([_csv_safe(c) if not isinstance(c, Decimal) else f"{c:.2f}" for c in row])
+            w.writerow([_csv_safe(c) if not isinstance(c, Decimal) else f"{c:.2f}" for c in row])   # numbers stay numbers
     # utf-8-sig adds a byte-order mark so Excel opens the file with the correct characters
     response = HttpResponse(buffer.getvalue().encode("utf-8-sig"), content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="{_filename(ctx, "csv")}"'

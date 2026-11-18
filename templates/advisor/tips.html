@@ -1,9 +1,42 @@
 {% extends 'base.html' %}
-{% block title %}Financial tips{% endblock %}
+{% block title %}Financial health{% endblock %}
 {% block content %}
-<h1 class="h3 mb-1">Financial tips</h1><p class="text-muted">Simple tips based on your own recorded income, spending, budget and savings.</p>
-<div class="row justify-content-start"><div class="col-lg-8">
+{% with h=health %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+  <div><h1 class="h3 mb-1">Financial health</h1>
+    <p class="text-muted mb-0">Calculated from your own records. Showing: <strong>{{ h.period_label }}</strong> ({{ h.start|date:"d M" }} to {{ h.end|date:"d M Y" }}).</p></div>
+  <div class="d-flex gap-2 flex-wrap"><a class="btn btn-sm btn-outline-primary" href="{% url 'advisor:recommendations' %}"><i class="bi bi-check2-square"></i> Recommendations{% if pending_count %} <span class="badge text-bg-warning">{{ pending_count }}</span>{% endif %}</a>
+  <a class="btn btn-sm btn-spend" href="{% url 'advisor:simulator' %}"><i class="bi bi-calculator"></i> What-if simulator</a>
+  <div class="btn-group" role="group" aria-label="Choose period">
+    <a class="btn btn-sm {% if h.period == 'this' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?period=this">This month</a>
+    <a class="btn btn-sm {% if h.period == 'last' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?period=last">Last month</a>
+  </div></div>
+</div>
+
+{% for n in h.notices %}<div class="alert alert-secondary py-2">{{ n }}</div>{% endfor %}
+
+<div class="row g-3 mb-4">
+{% for i in h.indicators %}
+  <div class="col-md-6"><div class="card h-100"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <div class="text-muted small">{{ i.title }}</div>
+      {% if i.available %}<span class="badge text-bg-{% if i.status == 'good' %}success{% elif i.status == 'watch' %}warning{% elif i.status == 'concern' %}danger{% else %}secondary{% endif %}">{% if i.status == 'good' %}Healthy{% elif i.status == 'watch' %}Worth watching{% elif i.status == 'concern' %}Needs attention{% else %}For information{% endif %}</span>{% else %}<span class="badge text-bg-light">Not enough data</span>{% endif %}
+    </div>
+    <div class="h3 my-1">{{ i.value }}</div>
+    {% if i.evidence %}<div class="small mb-2"><strong>Evidence:</strong> {{ i.evidence }}</div>{% endif %}
+    <div class="small text-muted">{{ i.explain }}</div>
+  </div></div></div>
+{% endfor %}
+</div>
+
+<h2 class="h5">What your records show</h2>
+{% for t in h.insights %}<div class="alert alert-{{ t.level }}"><div class="fw-bold">{{ t.title }}</div>{{ t.text }}</div>
+{% empty %}<p class="text-muted">No notable changes or patterns yet. Insights appear once there is enough history to compare.</p>{% endfor %}
+{% endwith %}
+
+<h2 class="h5 mt-4">Alerts and tips</h2>
+<div class="row"><div class="col-lg-9">
 {% for t in tips %}<div class="alert alert-{{ t.level }}"><div class="fw-bold">{{ t.title }}</div>{{ t.text }}</div>{% endfor %}
-<p class="small text-muted">PesaWise tips come from fixed rules, not from a professional financial adviser. Use them as prompts to review your habits, not as financial advice.</p>
 </div></div>
+<p class="small text-muted mt-3">Guideline figures (such as a 10% savings rate or 3 months of emergency cover) are common rules of thumb, not rules for everyone. These tips and indicators come from fixed calculations on your recorded data, not from a professional financial adviser.</p>
 {% endblock %}

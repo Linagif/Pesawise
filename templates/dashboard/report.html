@@ -1,7 +1,9 @@
 {% extends 'base.html' %}{% load money %}
 {% block title %}Reports{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><h1 class="h3 mb-0">Reports</h1><button class="btn btn-outline-primary btn-sm no-print" onclick="window.print()"><i class="bi bi-printer"></i> Print / save as PDF</button></div>
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><h1 class="h3 mb-0">Reports</h1><div class="d-flex gap-2 no-print">
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'dashboard:report_csv' %}?{{ request.GET.urlencode }}"><i class="bi bi-filetype-csv"></i> Download CSV</a>
+    <a class="btn btn-primary btn-sm" href="{% url 'dashboard:report_pdf' %}?{{ request.GET.urlencode }}"><i class="bi bi-file-earmark-pdf"></i> Download PDF</a></div></div>
 <form method="get" class="card card-body mb-3 no-print"><div class="row g-2 align-items-end">
   <div class="col-md-3"><label class="form-label small mb-0" for="kind">Report</label><select name="kind" id="kind" class="form-select">{% for k, label in kinds %}<option value="{{ k }}" {% if k == kind %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
   <div class="col-6 col-md-3" data-for="daily weekly monthly budget"><label class="form-label small mb-0" for="date">Day in the period</label><input type="date" class="form-control" id="date" name="date" value="{{ anchor|date:'Y-m-d' }}" max="{% now 'Y-m-d' %}"></div>

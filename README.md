@@ -38,7 +38,7 @@ Bootstrap, Chart.js and the font load from a CDN, so the browser needs an intern
 ## 2. Run the tests
 
 ```bash
-python manage.py test            # 72 tests; see docs/TEST_RESULTS.md
+python manage.py test            # 212 tests; see docs/TEST_RESULTS.md
 ```
 
 ## 3. Project structure and purpose of each important file
