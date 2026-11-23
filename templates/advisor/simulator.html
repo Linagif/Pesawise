@@ -1,0 +1,53 @@
+{% extends 'base.html' %}{% load money %}
+{% block title %}What-if simulator{% endblock %}
+{% block content %}
+<a href="{% url 'advisor:tips' %}" class="small">&larr; Financial health</a>
+<h1 class="h3 mb-1">What-if simulator</h1>
+<p class="text-muted">Try a decision on paper first. Answers come from your own recent records. Nothing here changes your data.</p>
+
+{% if not base %}
+<div class="empty">The simulator needs at least one full past month with income or spending recorded. Keep recording, and it will unlock next month.</div>
+{% else %}
+<div class="card mb-3"><div class="card-body">
+  <div class="fw-bold mb-2">Your starting point <span class="fw-normal text-muted small">(average of your last {{ base.months_used }} full month{{ base.months_used|pluralize }})</span></div>
+  <div class="row g-3 small">
+    <div class="col-6 col-md-3"><div class="text-muted">Income / month</div><strong>{{ base.income|kes }}</strong></div>
+    <div class="col-6 col-md-3"><div class="text-muted">Spending / month</div><strong>{{ base.spent|kes }}</strong></div>
+    <div class="col-6 col-md-3"><div class="text-muted">Surplus / month</div><strong>{{ base.surplus|kes }}</strong></div>
+    <div class="col-6 col-md-3"><div class="text-muted">Available balance</div><strong>{{ base.balance|kes }}</strong></div>
+  </div>
+  {% if base.months_used < 3 %}<div class="small text-muted mt-2">Based on only {{ base.months_used }} month{{ base.months_used|pluralize }} of records, so treat the answers as rough.</div>{% endif %}
+  {% if base.surplus_min != base.surplus_max %}<div class="small text-muted mt-1">Your monthly surplus ranged from {{ base.surplus_min|kes }} to {{ base.surplus_max|kes }}, so real months vary.</div>{% endif %}
+</div></div>
+
+{% if result %}
+<div class="card mb-4 border-{% if result.verdict == 'good' %}success{% elif result.verdict == 'tight' %}warning{% elif result.verdict == 'no' %}danger{% else %}secondary{% endif %}" id="result"><div class="card-body">
+  <div class="d-flex justify-content-between flex-wrap gap-2"><h2 class="h5 mb-2">{{ result.title }}</h2>
+    <span class="badge align-self-start text-bg-{% if result.verdict == 'good' %}success{% elif result.verdict == 'tight' %}warning{% elif result.verdict == 'no' %}danger{% else %}secondary{% endif %}">{% if result.verdict == 'good' %}Looks achievable{% elif result.verdict == 'tight' %}Possible, but tight{% elif result.verdict == 'no' %}Not supported by your recent figures{% else %}Estimate{% endif %}</span></div>
+  <p class="mb-3">{{ result.headline }}</p>
+  <div class="row g-3"><div class="col-lg-6">
+    <div class="fw-bold small mb-1">Calculation</div>
+    <table class="table table-sm mb-0"><tbody>{% for label, value in result.calcs %}<tr><td>{{ label }}</td><td class="text-end fw-semibold">{{ value }}</td></tr>{% endfor %}</tbody></table>
+    {% if result.table and result.table.rows %}<div class="fw-bold small mt-3 mb-1">Other saving speeds</div>
+      <table class="table table-sm mb-0"><thead><tr>{% for h in result.table.header %}<th>{{ h }}</th>{% endfor %}</tr></thead><tbody>{% for row in result.table.rows %}<tr>{% for c in row %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>{% endif %}
+  </div><div class="col-lg-6">
+    <div class="fw-bold small mb-1">Assumptions</div><ul class="small">{% for a in result.assumptions %}<li>{{ a }}</li>{% endfor %}</ul>
+    {% if result.notes %}<div class="fw-bold small mb-1">Notes</div><ul class="small">{% for n in result.notes %}<li>{{ n }}</li>{% endfor %}</ul>{% endif %}
+    <div class="fw-bold small mb-1">Limitations</div><ul class="small text-muted mb-0">{% for l in result.limitations %}<li>{{ l }}</li>{% endfor %}</ul>
+  </div></div>
+</div></div>
+{% endif %}
+
+<div class="row g-3">
+{% for key, label, icon in scenarios %}
+  <div class="col-lg-6"><div class="card h-100 {% if chosen == key %}border-primary{% endif %}"><div class="card-header"><i class="bi {{ icon }}"></i> {{ label }}</div><div class="card-body">
+    <form method="get" action="#result" novalidate><input type="hidden" name="scenario" value="{{ key }}">
+      {% for k, f in forms.items %}{% if k == key %}{% include 'includes/_form.html' with form=f %}{% endif %}{% endfor %}
+      <button class="btn btn-primary" type="submit">Run this scenario</button>
+    </form>
+  </div></div></div>
+{% endfor %}
+</div>
+{% endif %}
+<p class="small text-muted mt-3">Simulations show what could happen if your recent pattern continues. They are not predictions, guarantees or professional financial advice.</p>
+{% endblock %}

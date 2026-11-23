@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="auth-brand mb-3">Pesa<span>Wise</span></div>
+<div class="card"><div class="card-body p-4">
+  <h1 class="h4 mb-3">Log in</h1>
+  <form method="post">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+    {% include 'includes/_form.html' %}
+    <button class="btn btn-primary w-100" type="submit">Log in</button>
+  </form>
+  {% if demo_enabled %}<hr><form method="post" action="{% url 'accounts:demo' %}">{% csrf_token %}
+    <button class="btn btn-spend w-100" type="submit">Try the demo</button>
+    <div class="form-text text-center mt-1">No sign-up. You get your own private sample account with fake data, deleted after 24 hours.</div></form><hr>{% endif %}
+  <div class="d-flex justify-content-between mt-3 small"><a href="{% url 'password_reset' %}">Forgot password?</a><a href="{% url 'accounts:register' %}">Create an account</a></div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}{% load money %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+  <div><h1 class="h3 mb-0">Hi {{ user.first_name|default:user.username }}</h1><div class="text-muted">{{ today|date:"l, d F Y" }}</div></div>
+  <div class="d-flex gap-2"><a class="btn btn-outline-primary" href="{% url 'income:add' %}"><i class="bi bi-plus-lg"></i> Record income</a>
+    <button class="btn btn-spend" data-bs-toggle="modal" data-bs-target="#quickExpense"><i class="bi bi-plus-lg"></i> Record expense</button></div>
+</div>
+{% if not has_data %}
+<div class="empty mb-4"><h2 class="h5">Let's set up your money picture</h2>
+  <p class="mb-3">Three quick steps and this page fills up with your own numbers.</p>
+  <a class="btn btn-primary me-1" href="{% url 'income:add' %}">1. Record money you received</a>
+  <a class="btn btn-outline-primary me-1" href="{% url 'budgets:create' %}">2. Create this month's budget</a>
+  <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quickExpense">3. Record a purchase</button></div>
+{% endif %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3 mb-3">
+  <div class="col"><div class="card card-body stat"><div class="label">Total income received</div><div class="value">{{ cards.income|kes }}</div></div></div>
+  <div class="col"><div class="card card-body stat"><div class="label">Total expenses</div><div class="value">{{ cards.expenses|kes }}</div></div></div>
+  <div class="col"><div class="card card-body stat {% if cards.balance < 0 %}neg{% endif %}"><div class="label">Available balance</div><div class="value">{{ cards.balance|kes }}</div><div class="small text-muted">Income − expenses − savings</div></div></div>
+  <div class="col"><div class="card card-body stat"><div class="label">Total savings</div><div class="value">{{ cards.savings|kes }}</div></div></div>
+  <div class="col"><div class="card card-body stat"><div class="label">Budget for {{ today|date:"F" }}</div>{% if budget %}<div class="value">{{ cards.budget|kes }}</div>{% else %}<div class="value">Not set</div><a class="small" href="{% url 'budgets:create' %}">Create a budget</a>{% endif %}</div></div>
+  <div class="col"><div class="card card-body stat {% if cards.budget_remaining is not None and cards.budget_remaining < 0 %}neg{% endif %}"><div class="label">Remaining budget</div><div class="value">{% if budget %}{{ cards.budget_remaining|kes }}{% else %}—{% endif %}</div></div></div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-lg-5"><div class="card h-100"><div class="card-header d-flex justify-content-between"><span>Today's spending</span><a class="small fw-normal" href="{% url 'expenses:daily' %}">Open daily view</a></div><div class="card-body">
+    <div class="row g-2 mb-3"><div class="col-4"><div class="text-muted small">Spent</div><strong>{{ daily.total|kes }}</strong></div><div class="col-4"><div class="text-muted small">Transactions</div><strong>{{ daily.count }}</strong></div>
+      <div class="col-4"><div class="text-muted small">Highest</div><strong>{% if daily.highest %}{{ daily.highest.amount|kes }}{% else %}—{% endif %}</strong></div></div>
+    {% if daily.target %}<div class="small mb-3">Left of today's target: <strong class="{% if daily.remaining_target < 0 %}text-danger{% endif %}">{{ daily.remaining_target|kes }}</strong></div>{% endif %}
+    {% for c in daily.by_category %}<div class="d-flex justify-content-between small"><span>{{ c.name }}</span><strong>{{ c.total|kes }}</strong></div>{% empty %}<p class="text-muted mb-0">Nothing spent yet today.</p>{% endfor %}
+  </div></div></div>
+  <div class="col-lg-7"><div class="card h-100"><div class="card-header d-flex justify-content-between"><span>Financial tips</span><a class="small fw-normal" href="{% url 'advisor:tips' %}">See all</a></div><div class="card-body">
+    {% for t in tips %}<div class="alert alert-{{ t.level }} py-2 mb-2"><strong>{{ t.title }}.</strong> {{ t.text }}</div>{% endfor %}</div></div></div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-lg-6"><div class="card"><div class="card-header">Income vs expenses (last 6 months)</div><div class="card-body"><div class="chart-box"><canvas id="chIncExp" aria-label="Income versus expenses chart"></canvas></div></div></div></div>
+  <div class="col-lg-6"><div class="card"><div class="card-header">Expenses by category ({{ today|date:"F" }})</div><div class="card-body"><div class="chart-box"><canvas id="chCat" aria-label="Expenses by category chart"></canvas></div></div></div></div>
+  <div class="col-lg-6"><div class="card"><div class="card-header">Spending trend, {{ today|date:"F" }} (per day)</div><div class="card-body"><div class="chart-box"><canvas id="chTrend" aria-label="Daily spending trend chart"></canvas></div></div></div></div>
+  <div class="col-lg-6"><div class="card"><div class="card-header">Budget: limit vs actual</div><div class="card-body"><div class="chart-box"><canvas id="chBudget" aria-label="Budget utilization chart"></canvas></div></div></div></div>
+  <div class="col-lg-6"><div class="card"><div class="card-header">Savings progress (%)</div><div class="card-body"><div class="chart-box"><canvas id="chSave" aria-label="Savings progress chart"></canvas></div></div></div></div>
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header d-flex justify-content-between"><span>Budget progress</span><a class="small fw-normal" href="{% if budget %}{% url 'budgets:detail' budget.pk %}{% else %}{% url 'budgets:create' %}{% endif %}">{% if budget %}Manage{% else %}Create{% endif %}</a></div><div class="card-body">
+    {% if prog and prog.rows %}{% for r in prog.rows %}<div class="mb-3"><div class="d-flex justify-content-between small"><span>{{ r.name }}</span><span>{{ r.actual|kes }} / {{ r.allocated|kes }} · {% if r.pct is None %}no limit{% else %}{{ r.pct }}%{% endif %}</span></div>{% include 'includes/_bar.html' with width=r.width color=r.color height='8px' %}</div>{% endfor %}
+    {% else %}<p class="text-muted mb-0">No budget limits for this month yet.</p>{% endif %}</div></div></div>
+</div>
+<div class="card"><div class="card-header d-flex justify-content-between flex-wrap gap-2"><span>Recent transactions</span>
+  <span class="d-flex gap-2 no-print"><input id="txSearch" class="form-control form-control-sm" placeholder="Search" aria-label="Search transactions">
+  <select id="txKind" class="form-select form-select-sm" aria-label="Filter by type"><option value="">All</option><option value="income">Income</option><option value="expense">Expenses</option><option value="saving">Savings</option></select></span></div>
+{% if recent %}<div class="table-responsive"><table class="table mb-0" id="txTable"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th class="text-end">Amount</th></tr></thead><tbody>
+{% for r in recent %}<tr data-kind="{{ r.kind }}"><td>{{ r.date|date:"d M" }}</td><td>{{ r.description }}</td><td>{{ r.category }}</td>
+<td class="text-end {% if r.kind == 'income' %}amount-in">+{% elif r.kind == 'saving' %}amount-save">{% else %}amount-out">−{% endif %}{{ r.amount|kes }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty m-3">No transactions yet.</div>{% endif %}</div>
+{{ chart|json_script:"chart-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const D = JSON.parse(document.getElementById("chart-data").textContent);
+const PAL = ["#0f6b4f","#f2b705","#2f80a8","#b42318","#7a5af8","#e07a1f","#4c9f70","#8c6d3f","#c2417c","#5d6f66"];
+const kes = v => "KSh " + Number(v).toLocaleString("en-KE", {minimumFractionDigits: 0});
+function make(id, cfg, hasData) {
+  const el = document.getElementById(id);
+  if (!hasData) { el.parentElement.innerHTML = '<div class="empty h-100 d-flex align-items-center justify-content-center">No data yet</div>'; return; }
+  new Chart(el, cfg);
+}
+const opts = {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: "bottom"}, tooltip: {callbacks: {label: c => " " + (c.dataset.label ? c.dataset.label + ": " : "") + kes(c.parsed.y ?? c.parsed)}}}};
+const sum = a => a.reduce((x, y) => x + y, 0);
+make("chIncExp", {type: "bar", data: {labels: D.months, datasets: [{label: "Income", data: D.income, backgroundColor: "#0f6b4f"}, {label: "Expenses", data: D.expenses, backgroundColor: "#f2b705"}]}, options: opts}, sum(D.income) + sum(D.expenses) > 0);
+make("chCat", {type: "doughnut", data: {labels: D.cat_labels, datasets: [{data: D.cat_values, backgroundColor: PAL}]}, options: {...opts, plugins: {legend: {position: "right"}, tooltip: {callbacks: {label: c => " " + c.label + ": " + kes(c.parsed)}}}}}, D.cat_values.length > 0);
+make("chTrend", {type: "line", data: {labels: D.trend_labels, datasets: [{label: "Spent", data: D.trend_values, borderColor: "#0f6b4f", backgroundColor: "rgba(15,107,79,.12)", fill: true, tension: .25}]}, options: {...opts, plugins: {legend: {display: false}, tooltip: opts.plugins.tooltip}}}, sum(D.trend_values) > 0);
+make("chBudget", {type: "bar", data: {labels: D.budget_labels, datasets: [{label: "Limit", data: D.budget_alloc, backgroundColor: "#cfd9d3"}, {label: "Actual", data: D.budget_actual, backgroundColor: "#0f6b4f"}]}, options: {...opts, indexAxis: "y"}}, D.budget_labels.length > 0);
+make("chSave", {type: "bar", data: {labels: D.goal_labels, datasets: [{label: "Progress %", data: D.goal_progress, backgroundColor: "#7a5af8"}]}, options: {...opts, indexAxis: "y", scales: {x: {min: 0, max: 100}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => " " + c.parsed.x + "%"}}}}}, D.goal_labels.length > 0);
+// Transaction table search + filter
+const tx = document.getElementById("txTable");
+function filterTx() { const q = document.getElementById("txSearch").value.toLowerCase(), k = document.getElementById("txKind").value;
+  tx.querySelectorAll("tbody tr").forEach(r => { r.hidden = (k && r.dataset.kind !== k) || (q && !r.textContent.toLowerCase().includes(q)); }); }
+if (tx) { document.getElementById("txSearch").addEventListener("input", filterTx); document.getElementById("txKind").addEventListener("change", filterTx); }
+</script>
+{% endblock %}

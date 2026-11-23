@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Import M-Pesa messages{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8">
+  <h1 class="h3 mb-1">Import from M-Pesa messages</h1>
+  <p class="text-muted">Copy your M-Pesa confirmation messages and paste them below. You review everything before anything is saved.</p>
+  {% if pending %}<div class="alert alert-warning d-flex justify-content-between align-items-center">You have {{ pending }} message{{ pending|pluralize }} waiting for review.
+    <a class="btn btn-sm btn-primary" href="{% url 'imports:review' %}">Review now</a></div>{% endif %}
+  <div class="alert alert-secondary small"><strong>Your safety:</strong> PesaWise will never ask for your M-Pesa PIN, a one-time code (OTP) or any password. Only paste confirmation messages. Phone numbers, your M-Pesa balance and the original message text are not stored: only the amount, fee, name, date and transaction code are kept.</div>
+  <div class="card"><div class="card-body">
+    <form method="post" novalidate>{% csrf_token %}{% include 'includes/_form.html' %}
+      <button class="btn btn-primary" type="submit">Read messages</button>
+      <a class="btn btn-light" href="{% url 'dashboard:home' %}">Cancel</a></form>
+  </div></div>
+  <p class="small text-muted mt-3">Understood: money sent, received, paid to a till or paybill, withdrawals, deposits, airtime and reversals. Pasting the same message twice is safe because each M-Pesa transaction code is only counted once.</p>
+</div></div>
+{% endblock %}

@@ -1,0 +1,31 @@
+# Render Blueprint: creates the web service and a PostgreSQL database in one go.
+# Check current plan names, limits and prices on render.com before using (free-tier terms change).
+databases:
+  - name: pesawise-db
+    plan: free              # NOTE: free Render Postgres expires after 30 days and has no backups
+    databaseName: pesawise
+    user: pesawise
+
+services:
+  - type: web
+    name: pesawise
+    runtime: python
+    plan: free              # sleeps after ~15 idle minutes; the first request afterwards is slow
+    buildCommand: pip install -r requirements-prod.txt && python manage.py collectstatic --noinput
+    startCommand: python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2
+    healthCheckPath: /accounts/login/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_BEHIND_PROXY
+        value: "True"
+      - key: DJANGO_DEMO_ENABLED
+        value: "True"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pesawise-db
+          property: connectionString

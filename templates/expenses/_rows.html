@@ -1,0 +1,8 @@
+{% load money %}{% for e in items %}
+<tr><td>{{ e.expense_date|date:"d M" }}</td><td>{{ e.description }}{% if e.notes %}<div class="small text-muted">{{ e.notes|truncatechars:60 }}</div>{% endif %}</td>
+<td>{{ e.category }}</td><td>{{ e.get_payment_method_display }}</td>
+<td>{% if e.is_planned %}<span class="badge text-bg-light">Planned</span>{% else %}<span class="badge text-bg-warning">Unplanned</span>{% endif %}</td>
+<td class="text-end amount-out">{{ e.amount|kes }}</td>
+<td class="text-end text-nowrap"><a class="btn btn-sm btn-light" href="{% url 'expenses:edit' e.pk %}?next={{ request.get_full_path|urlencode }}" aria-label="Edit"><i class="bi bi-pencil"></i></a>
+<a class="btn btn-sm btn-light text-danger" href="{% url 'expenses:delete' e.pk %}?next={{ request.get_full_path|urlencode }}" aria-label="Delete"><i class="bi bi-trash"></i></a></td></tr>
+{% endfor %}

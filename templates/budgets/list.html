@@ -1,0 +1,16 @@
+{% extends 'base.html' %}{% load money %}
+{% block title %}Budgets{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h3 mb-0">Monthly budgets</h1><a class="btn btn-primary" href="{% url 'budgets:create' %}"><i class="bi bi-plus-lg"></i> New budget</a></div>
+{% for r in rows %}
+<div class="card mb-3"><div class="card-body">
+  <div class="d-flex justify-content-between flex-wrap gap-2"><h2 class="h5 mb-0">{{ r.budget.label }}</h2><a class="btn btn-sm btn-outline-primary" href="{% url 'budgets:detail' r.budget.pk %}">Open</a></div>
+  <div class="row my-3 g-2">
+    <div class="col-4"><div class="text-muted small">Budgeted</div><strong>{{ r.total_allocated|kes }}</strong></div>
+    <div class="col-4"><div class="text-muted small">Spent</div><strong>{{ r.total_actual|kes }}</strong></div>
+    <div class="col-4"><div class="text-muted small">Remaining</div><strong class="{% if r.remaining < 0 %}text-danger{% endif %}">{{ r.remaining|kes }}</strong></div></div>
+  {% include 'includes/_bar.html' with width=r.width color=r.color %}
+</div></div>
+{% empty %}<div class="empty">You have no budgets yet. A budget gives every shilling a job: set a limit for each category, then watch your spending against it.<br><a class="btn btn-primary mt-3" href="{% url 'budgets:create' %}">Create this month's budget</a></div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}{% load money %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><h1 class="h3 mb-0">Reports</h1><div class="d-flex gap-2 no-print">
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'dashboard:report_csv' %}?{{ request.GET.urlencode }}"><i class="bi bi-filetype-csv"></i> Download CSV</a>
+    <a class="btn btn-primary btn-sm" href="{% url 'dashboard:report_pdf' %}?{{ request.GET.urlencode }}"><i class="bi bi-file-earmark-pdf"></i> Download PDF</a></div></div>
+<form method="get" class="card card-body mb-3 no-print"><div class="row g-2 align-items-end">
+  <div class="col-md-3"><label class="form-label small mb-0" for="kind">Report</label><select name="kind" id="kind" class="form-select">{% for k, label in kinds %}<option value="{{ k }}" {% if k == kind %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-3" data-for="daily weekly monthly budget"><label class="form-label small mb-0" for="date">Day in the period</label><input type="date" class="form-control" id="date" name="date" value="{{ anchor|date:'Y-m-d' }}" max="{% now 'Y-m-d' %}"></div>
+  <div class="col-6 col-md-3" data-for="income expense savings"><label class="form-label small mb-0" for="start">From</label><input type="date" class="form-control" id="start" name="start" value="{{ start|date:'Y-m-d' }}"></div>
+  <div class="col-6 col-md-3" data-for="income expense savings"><label class="form-label small mb-0" for="end">To</label><input type="date" class="form-control" id="end" name="end" value="{{ end|date:'Y-m-d' }}"></div>
+  <div class="col-md-2"><button class="btn btn-primary w-100">Show</button></div></div></form>
+<h2 class="h5">{{ kind_label }}: {% if start == end %}{{ start|date:"d F Y" }}{% else %}{{ start|date:"d M Y" }} to {{ end|date:"d M Y" }}{% endif %}</h2>
+<div class="row g-3 mb-3 mt-0">
+  <div class="col-6 col-lg-3"><div class="card card-body stat"><div class="label">Income received</div><div class="value">{{ income_total|kes }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body stat"><div class="label">Expenses</div><div class="value">{{ expense_total|kes }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body stat"><div class="label">Moved to savings</div><div class="value">{{ savings_total|kes }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body stat {% if net < 0 %}neg{% endif %}"><div class="label">Left over in this period</div><div class="value">{{ net|kes }}</div></div></div>
+</div>
+
+{% if kind == 'budget' %}
+  {% if prog %}<div class="card mb-3"><div class="card-header">Budget performance: {{ budget.label }}</div><div class="table-responsive"><table class="table mb-0"><thead><tr><th>Category</th><th class="text-end">Limit</th><th class="text-end">Actual</th><th class="text-end">Remaining</th><th class="text-end">Used</th><th>Status</th></tr></thead><tbody>
+    {% for r in prog.rows %}<tr><td>{{ r.name }}</td><td class="text-end">{{ r.allocated|kes }}</td><td class="text-end">{{ r.actual|kes }}</td><td class="text-end {% if r.remaining < 0 %}text-danger{% endif %}">{{ r.remaining|kes }}</td><td class="text-end">{% if r.pct is None %}no limit{% else %}{{ r.pct }}%{% endif %}</td>
+    <td><span class="badge text-bg-{{ r.color }}">{% if r.status == 'over' %}Over budget{% elif r.status == 'warning' %}Near limit{% else %}On track{% endif %}</span></td></tr>{% endfor %}
+    <tr class="fw-bold"><td>Total</td><td class="text-end">{{ prog.total_allocated|kes }}</td><td class="text-end">{{ prog.total_actual|kes }}</td><td class="text-end">{{ prog.remaining|kes }}</td><td class="text-end">{% if prog.pct is None %}—{% else %}{{ prog.pct }}%{% endif %}</td><td></td></tr></tbody></table></div></div>
+  {% else %}<div class="empty">No budget exists for this month. <a href="{% url 'budgets:create' %}">Create one</a>.</div>{% endif %}
+{% endif %}
+
+{% if kind == 'daily' and summary %}<div class="card mb-3 card-body"><strong>{{ summary.count }}</strong> transaction{{ summary.count|pluralize }} today{% if summary.highest %}; highest was {{ summary.highest.description }} ({{ summary.highest.amount|kes }}){% endif %}.</div>{% endif %}
+
+{% if per_day %}<div class="card mb-3"><div class="card-header">Spending per day</div><div class="table-responsive"><table class="table table-sm mb-0"><tbody>{% for d in per_day %}<tr><td>{{ d.date|date:"D d M" }}</td><td class="text-end">{{ d.total|kes }}</td></tr>{% endfor %}</tbody></table></div></div>{% endif %}
+
+{% if kind != 'savings' and kind != 'budget' %}
+<div class="row g-3">
+  {% if kind != 'income' %}<div class="col-lg-6"><div class="card"><div class="card-header">Expenses by category</div><div class="card-body">{% for c in by_category %}<div class="d-flex justify-content-between small"><span>{{ c.name }} ({{ c.count }})</span><strong>{{ c.total|kes }}</strong></div>{% empty %}<p class="text-muted mb-0">No expenses in this period.</p>{% endfor %}
+    {% if unplanned_total %}<hr><div class="small text-muted">Unplanned spending: <strong>{{ unplanned_total|kes }}</strong></div>{% endif %}</div></div></div>{% endif %}
+  {% if kind != 'expense' %}<div class="col-lg-6"><div class="card"><div class="card-header">Income by source</div><div class="card-body">{% for s in by_source %}<div class="d-flex justify-content-between small"><span>{{ s.name }} ({{ s.count }})</span><strong>{{ s.total|kes }}</strong></div>{% empty %}<p class="text-muted mb-0">No income in this period.</p>{% endfor %}</div></div></div>{% endif %}
+</div>
+{% endif %}
+
+{% if kind == 'income' %}<div class="card mt-3"><div class="card-header">Income records</div>{% if incomes %}<div class="table-responsive"><table class="table mb-0"><tbody>{% for i in incomes %}<tr><td>{{ i.date_received|date:"d M Y" }}</td><td>{{ i.source }}</td><td>{{ i.description }}</td><td class="text-end amount-in">{{ i.amount|kes }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="card-body text-muted">No income recorded in this period.</div>{% endif %}</div>{% endif %}
+
+{% if kind == 'expense' or kind == 'daily' %}<div class="card mt-3"><div class="card-header">Expense records ({{ expense_count }})</div>{% if expenses %}<div class="table-responsive"><table class="table mb-0"><tbody>{% for e in expenses %}<tr><td>{{ e.expense_date|date:"d M Y" }}</td><td>{{ e.description }}</td><td>{{ e.category }}</td><td>{% if not e.is_planned %}<span class="badge text-bg-warning">Unplanned</span>{% endif %}</td><td class="text-end amount-out">{{ e.amount|kes }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="card-body text-muted">No expenses recorded in this period.</div>{% endif %}</div>{% endif %}
+
+{% if kind == 'savings' %}
+<div class="row g-3"><div class="col-lg-6"><div class="card"><div class="card-header">Goal progress (today)</div><div class="card-body">
+  {% for g in goals %}<div class="mb-3"><div class="d-flex justify-content-between small"><span>{{ g.name }}</span><span>{{ g.current_amount|kes }} / {{ g.target_amount|kes }} · {{ g.progress }}%</span></div>{% include 'includes/_bar.html' with width=g.progress|floatformat:0 color='success' height='8px' %}</div>{% empty %}<p class="text-muted mb-0">No savings goals yet.</p>{% endfor %}</div></div></div>
+<div class="col-lg-6"><div class="card"><div class="card-header">Contributions in this period</div>{% if contributions %}<div class="table-responsive"><table class="table mb-0"><tbody>{% for c in contributions %}<tr><td>{{ c.contribution_date|date:"d M Y" }}</td><td>{{ c.goal }}</td><td class="text-end amount-save">{{ c.amount|kes }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="card-body text-muted">No contributions in this period.</div>{% endif %}</div></div></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+const sel = document.getElementById("kind");
+function toggle() { document.querySelectorAll("[data-for]").forEach(el => { el.hidden = !el.dataset.for.split(" ").includes(sel.value); }); }
+sel.addEventListener("change", toggle); toggle();
+</script>
+{% endblock %}

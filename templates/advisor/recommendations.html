@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Recommendations{% endblock %}
+{% block content %}
+<a href="{% url 'advisor:tips' %}" class="small">&larr; Financial health</a>
+<h1 class="h3 mb-1">Recommendations</h1>
+<p class="text-muted">Practical suggestions based on your own records. Each shows the evidence behind it. You decide what to do with it.</p>
+<div class="row"><div class="col-xl-9">
+{% for item in active %}{% include 'advisor/_rec_card.html' %}
+{% empty %}<div class="empty">No recommendations right now. Either everything looks fine, or there is not enough history yet. Suggestions need at least one full past month of records.</div>{% endfor %}
+
+{% if history %}
+<h2 class="h5 mt-4">Completed and dismissed</h2>
+{% for item in history %}{% include 'advisor/_rec_card.html' %}{% endfor %}
+{% endif %}
+<p class="small text-muted mt-3">These are general budgeting suggestions from fixed rules, not professional financial advice. Suggested amounts only ever come from your free cash, never from your essential spending. A dismissed suggestion will not reappear for about a month.</p>
+</div></div>
+{% endblock %}

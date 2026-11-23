@@ -1,0 +1,36 @@
+{% extends 'base.html' %}{% load money %}
+{% block title %}Daily expenses{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div><h1 class="h3 mb-0">{% if is_today %}Today{% else %}{{ day|date:"l" }}{% endif %}</h1><div class="text-muted">{{ day|date:"l, d F Y" }}</div></div>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <a class="btn btn-light" href="?date={{ prev_day|date:'Y-m-d' }}" aria-label="Previous day"><i class="bi bi-chevron-left"></i></a>
+    <form method="get" class="d-flex"><input type="date" name="date" value="{{ day|date:'Y-m-d' }}" max="{% now 'Y-m-d' %}" class="form-control" onchange="this.form.submit()" aria-label="Pick a date"></form>
+    {% if next_day %}<a class="btn btn-light" href="?date={{ next_day|date:'Y-m-d' }}" aria-label="Next day"><i class="bi bi-chevron-right"></i></a>{% endif %}
+    <a class="btn btn-outline-primary" href="{% url 'expenses:list' %}">All expenses</a>
+    <a class="btn btn-spend" href="{% url 'expenses:add' %}"><i class="bi bi-plus-lg"></i> Record expense</a>
+  </div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="card card-body stat"><div class="label">Total spent</div><div class="value">{{ summary.total|kes }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body stat"><div class="label">Transactions</div><div class="value">{{ summary.count }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body stat"><div class="label">Highest expense</div><div class="value">{% if summary.highest %}{{ summary.highest.amount|kes }}{% else %}—{% endif %}</div>{% if summary.highest %}<div class="small text-muted">{{ summary.highest.description }}</div>{% endif %}</div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body stat {% if summary.remaining_target is not None and summary.remaining_target < 0 %}neg{% endif %}"><div class="label">Left of daily target</div>
+    {% if summary.target %}<div class="value">{{ summary.remaining_target|kes }}</div><div class="small text-muted">Target {{ summary.target|kes }}</div>{% else %}<div class="value">—</div><div class="small"><a href="{% url 'accounts:profile' %}">Set a daily target</a></div>{% endif %}</div></div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-8"><div class="card"><div class="card-header">Expenses recorded</div>
+  {% if items %}<div class="table-responsive"><table class="table mb-0"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Paid with</th><th></th><th class="text-end">Amount</th><th></th></tr></thead><tbody>{% include 'expenses/_rows.html' %}</tbody></table></div>
+  {% else %}<div class="empty m-3">Nothing recorded for this day.<br><a class="btn btn-spend mt-3" href="{% url 'expenses:add' %}">Record an expense</a></div>{% endif %}
+  </div></div>
+  <div class="col-lg-4">
+    <div class="card mb-3"><div class="card-header">Where the money went</div><div class="card-body">
+      {% for c in summary.by_category %}<div class="mb-3"><div class="d-flex justify-content-between small"><span>{{ c.name }}</span><strong>{{ c.total|kes }}</strong></div>{% include 'includes/_bar.html' with width=c.share color='success' height='8px' %}</div>
+      {% empty %}<p class="text-muted mb-0">No spending yet.</p>{% endfor %}</div></div>
+    <div class="card"><div class="card-header">Totals</div><ul class="list-group list-group-flush">
+      <li class="list-group-item d-flex justify-content-between"><span>This day</span><strong>{{ totals.day|kes }}</strong></li>
+      <li class="list-group-item d-flex justify-content-between"><span>Week ({{ totals.week_start|date:"d M" }}–{{ totals.week_end|date:"d M" }})</span><strong>{{ totals.week|kes }}</strong></li>
+      <li class="list-group-item d-flex justify-content-between"><span>Month</span><strong>{{ totals.month|kes }}</strong></li></ul></div>
+  </div>
+</div>
+{% endblock %}

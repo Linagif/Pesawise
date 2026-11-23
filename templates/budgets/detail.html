@@ -1,0 +1,32 @@
+{% extends 'base.html' %}{% load money %}
+{% block title %}Budget {{ budget.label }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div><a href="{% url 'budgets:list' %}" class="small">&larr; All budgets</a><h1 class="h3 mb-0">{{ budget.label }}</h1></div>
+  <a class="btn btn-outline-danger btn-sm" href="{% url 'budgets:delete' budget.pk %}">Delete budget</a>
+</div>
+<div class="card mb-3"><div class="card-body">
+  <div class="row g-3 mb-3"><div class="col-4"><div class="text-muted small">Total budget</div><div class="h4 mb-0">{{ total_allocated|kes }}</div></div>
+    <div class="col-4"><div class="text-muted small">Spent{% if has_savings_line %} + saved{% endif %}</div><div class="h4 mb-0">{{ total_actual|kes }}</div></div>
+    <div class="col-4"><div class="text-muted small">Remaining</div><div class="h4 mb-0 {% if remaining < 0 %}text-danger{% endif %}">{{ remaining|kes }}</div></div></div>
+  {% include 'includes/_bar.html' with width=width color=color height='14px' %}
+  <div class="small text-muted mt-1">{% if pct is None %}Unbudgeted spending{% else %}{{ pct }}% of the budget used{% endif %}</div>
+  {% if status == 'over' %}<div class="alert alert-danger mt-3 mb-0">You are over this month's budget by {{ remaining|cut:'-'|kes }}. Expenses are still recorded, so you can see exactly where it went.</div>{% endif %}
+</div></div>
+<div class="row g-3"><div class="col-lg-8"><div class="card"><div class="card-header">Category limits</div>
+{% if rows %}<div class="table-responsive"><table class="table mb-0 align-middle"><thead><tr><th>Category</th><th class="text-end">Limit</th><th class="text-end">Actual</th><th class="text-end">Remaining</th><th style="min-width:140px">Used</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.name }}{% if r.status == 'over' %} <span class="badge text-bg-danger">Over</span>{% elif r.status == 'warning' %} <span class="badge text-bg-warning">Near limit</span>{% endif %}</td>
+<td class="text-end">{{ r.allocated|kes }}</td><td class="text-end">{{ r.actual|kes }}</td><td class="text-end {% if r.remaining < 0 %}text-danger{% endif %}">{{ r.remaining|kes }}</td>
+<td>{% include 'includes/_bar.html' with width=r.width color=r.color height='8px' %}<span class="small text-muted">{% if r.pct is None %}no limit{% else %}{{ r.pct }}%{% endif %}</span></td>
+<td class="text-end text-nowrap"><a class="btn btn-sm btn-light" href="{% url 'budgets:allocation_edit' r.allocation.pk %}" aria-label="Edit limit"><i class="bi bi-pencil"></i></a>
+<a class="btn btn-sm btn-light text-danger" href="{% url 'budgets:allocation_delete' r.allocation.pk %}" aria-label="Remove"><i class="bi bi-trash"></i></a></td></tr>{% endfor %}
+</tbody></table></div>
+{% if unbudgeted > 0 %}<div class="card-body border-top small text-muted">Also spent {{ unbudgeted|kes }} in categories with no limit.</div>{% endif %}
+{% else %}<div class="empty m-3">No category limits yet. Add your first one on the right.</div>{% endif %}
+</div></div>
+<div class="col-lg-4"><div class="card"><div class="card-header">Add a category limit</div><div class="card-body">
+  {% if form.fields.category.queryset.exists %}<form method="post" novalidate>{% csrf_token %}{% include 'includes/_form.html' %}<button class="btn btn-primary" type="submit">Add limit</button></form>
+  {% else %}<p class="text-muted mb-0">Every category already has a limit.</p>{% endif %}
+  <p class="small text-muted mt-3 mb-0">Need another category? <a href="{% url 'core:list' %}">Add your own</a>. "Savings" is your planned saving: it counts the contributions you make this month.</p>
+</div></div></div></div>
+{% endblock %}
