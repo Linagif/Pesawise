@@ -17,6 +17,7 @@ urlpatterns = [
          name="password_reset_confirm"),
     path("accounts/", include("accounts.urls")),
     path("accounts/", include("django.contrib.auth.urls")),   # logout, *_done views
+    path("", include("core.pwa_urls")),
     path("", include("dashboard.urls")),
     path("income/", include("income.urls")),
     path("budgets/", include("budgets.urls")),

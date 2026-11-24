@@ -2,52 +2,54 @@
 
 Run with `python manage.py test -v 2`.
 
-**Result: 229 of 229 tests passed.**
+**Result: 246 of 246 tests passed.**
 
-| Test class | Tests | Passed |
-|---|---:|---:|
-| accounts.test_demo.DemoDataQualityTests | 5 | 5 |
-| accounts.test_demo.DemoSwitchTests | 2 | 2 |
-| accounts.test_demo.VisitorDemoTests | 7 | 7 |
-| accounts.tests.AccessControlTests | 2 | 2 |
-| accounts.tests.ProfileTests | 2 | 2 |
-| accounts.tests.RegistrationLoginTests | 5 | 5 |
-| advisor.test_analysis.CashFlowTests | 3 | 3 |
-| advisor.test_analysis.CategoryChangeTests | 5 | 5 |
-| advisor.test_analysis.EmergencyFundTests | 4 | 4 |
-| advisor.test_analysis.HealthPageTests | 2 | 2 |
-| advisor.test_analysis.HealthReportTests | 6 | 6 |
-| advisor.test_analysis.HelperTests | 3 | 3 |
-| advisor.test_analysis.RecurringTests | 5 | 5 |
-| advisor.test_analysis.SmallPurchaseTests | 2 | 2 |
-| advisor.test_analysis.SplitTests | 2 | 2 |
-| advisor.test_recommendations.LifecycleTests | 6 | 6 |
-| advisor.test_recommendations.OutcomeTests | 5 | 5 |
-| advisor.test_recommendations.RuleTests | 14 | 14 |
-| advisor.test_recommendations.ViewTests | 7 | 7 |
-| advisor.test_simulator.AffordTests | 6 | 6 |
-| advisor.test_simulator.BaselineTests | 4 | 4 |
-| advisor.test_simulator.CutTests | 4 | 4 |
-| advisor.test_simulator.IncomeChangeTests | 5 | 5 |
-| advisor.test_simulator.SavePlanTests | 5 | 5 |
-| advisor.test_simulator.SimulatorPageTests | 7 | 7 |
-| advisor.tests.AdvisorTests | 8 | 8 |
-| budgets.tests.BudgetTests | 11 | 11 |
-| dashboard.tests.CalculationTests | 7 | 7 |
-| dashboard.tests.DashboardViewTests | 7 | 7 |
-| dashboard.tests.ExportTests | 8 | 8 |
-| expenses.tests.ExpenseTests | 13 | 13 |
-| imports.tests.ImportServiceTests | 5 | 5 |
-| imports.tests.ImportViewTests | 6 | 6 |
-| imports.tests.ParserTests | 12 | 12 |
-| imports.tests.ReviewWorkflowTests | 15 | 15 |
-| income.tests.IncomeTests | 9 | 9 |
-| savings.tests.SavingsTests | 9 | 9 |
+| Test class | Tests |
+|---|---:|
+| accounts.test_demo.DemoDataQualityTests | 4 |
+| accounts.test_demo.DemoSwitchTests | 2 |
+| accounts.test_demo.VisitorDemoTests | 7 |
+| accounts.tests.AccessControlTests | 2 |
+| accounts.tests.ProfileTests | 2 |
+| accounts.tests.RegistrationLoginTests | 5 |
+| advisor.test_analysis.CashFlowTests | 3 |
+| advisor.test_analysis.CategoryChangeTests | 5 |
+| advisor.test_analysis.EmergencyFundTests | 4 |
+| advisor.test_analysis.HealthPageTests | 2 |
+| advisor.test_analysis.HealthReportTests | 6 |
+| advisor.test_analysis.HelperTests | 3 |
+| advisor.test_analysis.RecurringTests | 5 |
+| advisor.test_analysis.SmallPurchaseTests | 2 |
+| advisor.test_analysis.SplitTests | 2 |
+| advisor.test_recommendations.LifecycleTests | 6 |
+| advisor.test_recommendations.OutcomeTests | 5 |
+| advisor.test_recommendations.RuleTests | 14 |
+| advisor.test_recommendations.ViewTests | 7 |
+| advisor.test_simulator.AffordTests | 6 |
+| advisor.test_simulator.BaselineTests | 4 |
+| advisor.test_simulator.CutTests | 4 |
+| advisor.test_simulator.IncomeChangeTests | 5 |
+| advisor.test_simulator.SavePlanTests | 5 |
+| advisor.test_simulator.SimulatorPageTests | 7 |
+| advisor.tests.AdvisorTests | 8 |
+| budgets.tests.BudgetTests | 11 |
+| core.test_pwa.ManifestTests | 5 |
+| core.test_pwa.ServiceWorkerBehaviourTests | 7 |
+| core.test_pwa.ServiceWorkerFileTests | 4 |
+| dashboard.tests.CalculationTests | 7 |
+| dashboard.tests.DashboardViewTests | 7 |
+| dashboard.tests.ExportTests | 8 |
+| expenses.tests.ExpenseTests | 13 |
+| imports.tests.ImportServiceTests | 5 |
+| imports.tests.ImportViewTests | 6 |
+| imports.tests.ParserTests | 12 |
+| imports.tests.ReviewWorkflowTests | 15 |
+| income.tests.IncomeTests | 9 |
+| savings.tests.SavingsTests | 9 |
 
 ## Detail
 
 ### accounts.test_demo.DemoDataQualityTests
-- PASS: every page renders
 - PASS: health indicators all available
 - PASS: recommendations are sensible
 - PASS: review queue has three waiting messages and no dates in future
@@ -237,6 +239,28 @@ Run with `python manage.py test -v 2`.
 - PASS: unbudgeted spending counts against total
 - PASS: zero budget is safe
 
+### core.test_pwa.ManifestTests
+- PASS: icons exist with the declared sizes
+- PASS: post not allowed
+- PASS: required installability fields
+- PASS: served publicly with the right type
+- PASS: shortcuts point to real pages
+
+### core.test_pwa.ServiceWorkerBehaviourTests
+- PASS: downloads and data requests are not handled or cached
+- PASS: installs the offline page and icons
+- PASS: never intercepts form posts or other sites
+- PASS: offline navigation shows the offline page not stale data
+- PASS: old versions are cleaned but other caches untouched
+- PASS: pages come from the network and are never stored
+- PASS: static files are cached and work offline
+
+### core.test_pwa.ServiceWorkerFileTests
+- PASS: headers allow root scope and prompt updates
+- PASS: install button and instructions for signed in students
+- PASS: offline page is public and self contained
+- PASS: pages link the manifest and script
+
 ### dashboard.tests.CalculationTests
 - PASS: available balance formula
 - PASS: decimal precision no float errors
@@ -350,6 +374,7 @@ Run with `python manage.py test -v 2`.
 
 ## Other checks
 - `python manage.py check` and `makemigrations --check`: no issues.
-- `check --deploy` with `DJANGO_DEBUG=False`: only optional HSTS subdomain/preload advisories remain.
+- The whole suite also passes against PostgreSQL 16 (CI runs both SQLite and PostgreSQL).
+- The service-worker tests run the real worker in Node. Deliberately breaking it (caching pages, intercepting POSTs) makes them fail.
 - All test data is invented. No real names, phone numbers or M-Pesa messages are used.
-- Not covered here: visual review in a real browser, load testing, and real-message parser validation. Check these manually.
+- Not covered here: visual review on real phones, load testing, and real-message parser validation. Check these manually.
