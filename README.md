@@ -27,6 +27,7 @@ Recommendations · M-Pesa review screen · a downloaded PDF report. (Use the dem
 | **What-if simulator** | "Can I afford KSh 60,000?", "Can I save KSh 10,000 a month?", "What if I cut food by KSh 1,500?", "What if my income drops 20%?": answered from the student's own history, with assumptions and limitations shown |
 | **Recommendations** | Stored, evidence-backed suggestions with confidence, priority, review date, accept/dismiss/complete, feedback, and honest outcome tracking |
 | **M-Pesa SMS import** | Paste confirmation messages, review them, then save. Handles sent, received, till, paybill, withdraw, deposit, airtime and reversals, with fees recorded separately and duplicates blocked |
+| **Dark mode** | Choose **Light**, **Dark** or **Device default** from a menu in the top bar (or the Appearance card on the Profile page). Remembered on the device, no flash on load, charts redraw to match, and every colour pair is tested for WCAG AA contrast |
 | **Installable app (PWA)** | Installs on a phone from the browser, with its own icon and full-screen launch. It never stores your records on the device |
 | **Demo mode** | A private, disposable sample account for every visitor |
 
@@ -65,10 +66,10 @@ These are the choices I would want to talk about in an interview.
 ## Testing
 
 ```bash
-python manage.py test        # 246 tests
+python manage.py test        # 280 tests
 ```
 
-Covers authentication, access control, the service worker's privacy rules (run in Node against mock browser APIs), every calculation (including zero and edge cases), data isolation, the parser (with invented
+Covers authentication, access control, end-to-end browser-script tests (real pages and real clicks in jsdom; run `npm install --no-save jsdom` to enable them locally), the service worker's privacy rules and the theme script (run in Node against mock browser APIs), colour contrast, every calculation (including zero and edge cases), data isolation, the parser (with invented
 messages), the recommendation lifecycle, exports and demo mode. GitHub Actions runs the suite, `manage.py check` and a missing-migration
 check on every push.
 

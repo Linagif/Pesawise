@@ -41,3 +41,20 @@ offline page).
 ## Maintenance
 - Change `PWA_VERSION` in `core/pwa.py` to make every installed copy drop its old cached files.
 - After editing the icon design, run `python tools/make_icons.py`.
+
+## Dark mode
+Pick **Light**, **Dark** or **Device default** from the theme menu in the top bar (top-right on the login pages), or from the
+**Appearance** card on the Profile page. The current choice is ticked.
+- The choice is stored in the browser (`localStorage`), never on the server. If storage is blocked, the choice still applies for the visit.
+- "Device default" follows the phone or computer setting, including live changes such as night mode.
+- A tiny inline script in `<head>` applies the saved theme before the page paints, so there is no white flash.
+- Colours are CSS variables (`static/css/style.css`); Bootstrap's `data-bs-theme` handles its own components.
+- Charts redraw with theme-appropriate colours when the theme changes.
+- `core/test_theme.py` checks WCAG AA contrast for every colour pair in both themes and runs the real theme script in Node.
+
+## Updates reach every device (cache-busting)
+- Our own CSS and JavaScript are linked with `{% asset %}`, which adds a hash of the file's contents (`style.css?v=3fa9c1e2`). When a file
+  changes its URL changes, so a browser can never keep using an old copy.
+- The service worker fetches `/static/` files from the network first and uses its cache only when offline, and it deletes older copies of a
+  file when a newer one arrives. (An earlier version served the cache first, which could pair new HTML with old JavaScript.)
+- `PWA_VERSION` in `core/pwa.py` can still be bumped to force every installed copy to drop its cache.

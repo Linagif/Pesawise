@@ -2,7 +2,7 @@
 
 Run with `python manage.py test -v 2`.
 
-**Result: 246 of 246 tests passed.**
+**Result: 280 of 280 tests passed.**
 
 | Test class | Tests |
 |---|---:|
@@ -33,10 +33,15 @@ Run with `python manage.py test -v 2`.
 | advisor.test_simulator.SimulatorPageTests | 7 |
 | advisor.tests.AdvisorTests | 8 |
 | budgets.tests.BudgetTests | 11 |
+| core.test_assets.AssetTagTests | 4 |
 | core.test_pwa.ManifestTests | 5 |
-| core.test_pwa.ServiceWorkerBehaviourTests | 7 |
+| core.test_pwa.ServiceWorkerBehaviourTests | 8 |
 | core.test_pwa.ServiceWorkerFileTests | 4 |
-| dashboard.tests.CalculationTests | 7 |
+| core.test_theme.ContrastTests | 4 |
+| core.test_theme.TemplateWiringTests | 9 |
+| core.test_theme.ThemeScriptBehaviourTests | 12 |
+| core.test_theme_e2e.ThemeEndToEndTests | 4 |
+| dashboard.tests.CalculationTests | 6 |
 | dashboard.tests.DashboardViewTests | 7 |
 | dashboard.tests.ExportTests | 8 |
 | expenses.tests.ExpenseTests | 13 |
@@ -239,6 +244,12 @@ Run with `python manage.py test -v 2`.
 - PASS: unbudgeted spending counts against total
 - PASS: zero budget is safe
 
+### core.test_assets.AssetTagTests
+- PASS: every page uses versioned urls for its own css and js
+- PASS: hash changes when the file changes so old copies are never reused
+- PASS: missing file falls back to the plain url
+- PASS: url carries a content hash
+
 ### core.test_pwa.ManifestTests
 - PASS: icons exist with the declared sizes
 - PASS: post not allowed
@@ -253,7 +264,8 @@ Run with `python manage.py test -v 2`.
 - PASS: offline navigation shows the offline page not stale data
 - PASS: old versions are cleaned but other caches untouched
 - PASS: pages come from the network and are never stored
-- PASS: static files are cached and work offline
+- PASS: static files are cached as an offline fallback
+- PASS: updated scripts are never stuck behind an old cached copy
 
 ### core.test_pwa.ServiceWorkerFileTests
 - PASS: headers allow root scope and prompt updates
@@ -261,10 +273,46 @@ Run with `python manage.py test -v 2`.
 - PASS: offline page is public and self contained
 - PASS: pages link the manifest and script
 
+### core.test_theme.ContrastTests
+- PASS: dark palette
+- PASS: every theme variable is defined for dark
+- PASS: fixed colour pairs in both themes
+- PASS: light palette
+
+### core.test_theme.TemplateWiringTests
+- PASS: choices are buttons not links so nothing navigates
+- PASS: dashboard charts redraw on theme change
+- PASS: early script runs before any stylesheet
+- PASS: login page offers light dark and device choices
+- PASS: offline page supports dark
+- PASS: profile page has an appearance section
+- PASS: signed in pages have the menu once in the top bar
+- PASS: theme is not stored on the server
+- PASS: theme js is loaded on signed in pages too
+
+### core.test_theme.ThemeScriptBehaviourTests
+- PASS: appearance card buttons work and use aria pressed
+- PASS: blocked storage never breaks the page and choice still works
+- PASS: button has an accessible name
+- PASS: device default follows the device but explicit choices do not
+- PASS: exactly one choice is highlighted and announced
+- PASS: first visit follows the device
+- PASS: inline script agrees with the main script in every case
+- PASS: malformed clicks and values are ignored
+- PASS: picking light then dark then device
+- PASS: resolution rules
+- PASS: saved choice is restored
+- PASS: tells the charts when the theme changes
+
+### core.test_theme_e2e.ThemeEndToEndTests
+- PASS: appearance card and menu both respond
+- PASS: clicking the menu changes the theme on every page
+- PASS: no script errors apart from the charts that need the cdn
+- PASS: the page really loads theme js
+
 ### dashboard.tests.CalculationTests
 - PASS: available balance formula
 - PASS: decimal precision no float errors
-- PASS: negative balance allowed and flagged
 - PASS: period filters use correct dates
 - PASS: rounding half up
 - PASS: week and month ranges
@@ -375,6 +423,6 @@ Run with `python manage.py test -v 2`.
 ## Other checks
 - `python manage.py check` and `makemigrations --check`: no issues.
 - The whole suite also passes against PostgreSQL 16 (CI runs both SQLite and PostgreSQL).
-- The service-worker tests run the real worker in Node. Deliberately breaking it (caching pages, intercepting POSTs) makes them fail.
+- Browser-script tests run the real scripts in Node (and, with jsdom installed, the real rendered pages with real clicks). Deliberately breaking them (a missing script tag, caching pages, an unreadable colour) makes them fail.
 - All test data is invented. No real names, phone numbers or M-Pesa messages are used.
-- Not covered here: visual review on real phones, load testing, and real-message parser validation. Check these manually.
+- Not covered here: visual review in real browsers and on phones (especially dark mode), load testing, and real-message parser validation.

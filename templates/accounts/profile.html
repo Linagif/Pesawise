@@ -11,6 +11,14 @@
     <div><strong>Password</strong><div class="text-muted small">Username: {{ user.username }}</div></div>
     <a class="btn btn-outline-primary btn-sm" href="{% url 'password_change' %}">Change password</a></div></div>
   <div class="card mt-3"><div class="card-body">
+    <strong><i class="bi bi-palette"></i> Appearance</strong>
+    <p class="small text-muted mb-2">Choose how PesaWise looks on this device. "Device default" follows your phone or computer setting.</p>
+    <div class="btn-group flex-wrap" role="group" aria-label="Theme">
+      <button type="button" class="btn btn-outline-primary" data-theme-choice="light" aria-pressed="false"><i class="bi bi-sun"></i> Light</button>
+      <button type="button" class="btn btn-outline-primary" data-theme-choice="dark" aria-pressed="false"><i class="bi bi-moon-stars"></i> Dark</button>
+      <button type="button" class="btn btn-outline-primary" data-theme-choice="system" aria-pressed="false"><i class="bi bi-circle-half"></i> Device default</button>
+    </div></div></div>
+  <div class="card mt-3"><div class="card-body">
     <strong><i class="bi bi-phone"></i> Install PesaWise on your phone</strong>
     <p class="small text-muted mb-2">Open PesaWise like an app, full screen, from your home screen. It needs an internet connection, and your records are never stored on the device.</p>
     <ul class="small mb-0">

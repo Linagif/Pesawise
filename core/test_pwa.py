@@ -116,11 +116,16 @@ class ServiceWorkerBehaviourTests(TestCase):
         self.assertFalse(self.out["download"])
         self.assertNotIn("/reports/export/pdf/", self.out["cachedAfterDownload"])
 
-    def test_static_files_are_cached_and_work_offline(self):
+    def test_static_files_are_cached_as_an_offline_fallback(self):
         self.assertTrue(self.out["staticFirst"]["handled"])
         self.assertIn("/static/css/style.css", self.out["cachedAfterStatic"])
         self.assertTrue(self.out["staticOffline"]["handled"])
         self.assertIn("style.css", self.out["staticOffline"]["body"])                            # served from cache
+
+    def test_updated_scripts_are_never_stuck_behind_an_old_cached_copy(self):
+        self.assertEqual(self.out["staleCopyOnline"], "NEW-THEME-JS")                 # online: always the fresh file
+        self.assertEqual(self.out["staleOffline"], "NEW-THEME-JS")                      # offline: the latest copy we saw
+        self.assertTrue(self.out["neverRespondsUndefined"])
 
     def test_offline_navigation_shows_the_offline_page_not_stale_data(self):
         self.assertEqual(self.out["navOffline"]["body"], "precached:/offline/")

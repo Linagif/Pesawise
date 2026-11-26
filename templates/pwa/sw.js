@@ -28,17 +28,23 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)));
     return;
   }
-  if (url.pathname.startsWith("/static/")) {                  // our own CSS/JS/images: cached, refreshed in the background
-    event.respondWith(
-      caches.open(STATIC_CACHE).then(async (cache) => {
-        const cached = await cache.match(request, { ignoreSearch: true });
-        const network = fetch(request).then((response) => {
-          if (response && response.ok) cache.put(request, response.clone());
-          return response;
-        }).catch(() => cached);
-        return cached || network;
-      })
+  if (url.pathname.startsWith("/static/")) {                  // our own CSS/JS/images: ALWAYS fetched fresh when online, so an
+    event.respondWith(                                        // update can never be stuck behind an old cached copy
+      fetch(request).then((response) => {
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(STATIC_CACHE).then(async (cache) => {
+            const stored = await cache.keys();            // drop older versions of this same file first, so the
+            await Promise.all(stored                      // offline fallback can only ever return the latest one
+              .filter((k) => new URL(k.url).pathname === url.pathname && k.url !== request.url)
+              .map((k) => cache.delete(k)));
+            await cache.put(request, copy);
+          });
+        }
+        return response;
+      }).catch(() => caches.match(request, { ignoreSearch: true }))   // offline: fall back to the last copy we saw
     );
+    return;
   }
   /* anything else (downloads, data requests): network only, no respondWith, nothing cached */
 });

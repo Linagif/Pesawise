@@ -12,6 +12,8 @@ class MockCache {
   constructor(name) { this.name = name; if (!stores.has(name)) stores.set(name, new Map()); this.map = stores.get(name); }
   async addAll(urls) { for (const u of urls) this.map.set(norm(new URL(u, ORIGIN).href), { ok: true, tag: "precached:" + u }); }
   async put(req, res) { this.map.set(norm(req.url), res); }
+  async keys() { return [...this.map.keys()].map((u) => ({ url: u })); }
+  async delete(req) { return this.map.delete(norm(req.url)); }
   async match(req, opts = {}) {
     const url = typeof req === "string" ? new URL(req, ORIGIN).href : req.url;
     for (const [k, v] of this.map) if (norm(k, opts.ignoreSearch) === norm(url, opts.ignoreSearch)) return v;
@@ -22,7 +24,7 @@ const caches = {
   open: async (n) => new MockCache(n),
   keys: async () => [...stores.keys()],
   delete: async (n) => stores.delete(n),
-  match: async (req) => { for (const n of stores.keys()) { const r = await new MockCache(n).match(req); if (r) return r; } },
+  match: async (req, opts) => { for (const n of stores.keys()) { const r = await new MockCache(n).match(req, opts); if (r) return r; } },
 };
 
 let online = true;
@@ -70,11 +72,21 @@ const cachedUrls = (name) => [...(stores.get(name) || new Map()).keys()].map((k)
   await new Promise((r) => setTimeout(r, 10));
   out.cachedAfterStatic = cachedUrls(cacheName);
 
+  // an OLD copy of a script is already cached; the server now has a NEW version
+  await new MockCache(cacheName).put({ url: ORIGIN + "/static/js/theme.js" }, { ok: true, tag: "OLD-THEME-JS" });
+  network.set(ORIGIN + "/static/js/theme.js?v=newhash", "NEW-THEME-JS");
+  const fresh = await fire(req("/static/js/theme.js?v=newhash"));
+  out.staleCopyOnline = fresh.response && fresh.response.tag;
+  await new Promise((r) => setTimeout(r, 10));
+
   online = false;
   const navOff = await fire(req("/", { mode: "navigate" }));
   out.navOffline = { handled: navOff.handled, body: navOff.response && navOff.response.tag };
   const s2 = await fire(req("/static/css/style.css?v=4"));
   out.staticOffline = { handled: s2.handled, body: s2.response && s2.response.tag };
+  const s3 = await fire(req("/static/js/theme.js?v=newhash"));
+  out.staleOffline = s3.response && s3.response.tag;
+  out.neverRespondsUndefined = [out.staticOffline.body, out.staleOffline].every((b) => typeof b === "string");
   online = true;
 
   stores.set("pesawise-static-old", new Map()); stores.set("someone-elses-cache", new Map());

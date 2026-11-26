@@ -54,20 +54,35 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
 const D = JSON.parse(document.getElementById("chart-data").textContent);
-const PAL = ["#0f6b4f","#f2b705","#2f80a8","#b42318","#7a5af8","#e07a1f","#4c9f70","#8c6d3f","#c2417c","#5d6f66"];
 const kes = v => "KSh " + Number(v).toLocaleString("en-KE", {minimumFractionDigits: 0});
+const sum = a => a.reduce((x, y) => x + y, 0);
+const isDark = () => document.documentElement.getAttribute("data-bs-theme") === "dark";
+function colors() {   // brighter greens/reds on dark backgrounds, so every chart stays readable
+  return isDark()
+    ? {text: "#9db0a6", grid: "rgba(255,255,255,.10)", main: "#5fd391", gold: "#f2b705", limit: "#3a4a43", save: "#b9a6ff", line: "#5fd391", fill: "rgba(95,211,145,.15)",
+       pal: ["#5fd391","#f2b705","#6cb8e6","#ff8a80","#b9a6ff","#f0a35e","#8fd6b0","#c9ab72","#f08bb8","#9db0a6"]}
+    : {text: "#5d6f66", grid: "rgba(0,0,0,.08)", main: "#0f6b4f", gold: "#f2b705", limit: "#cfd9d3", save: "#7a5af8", line: "#0f6b4f", fill: "rgba(15,107,79,.12)",
+       pal: ["#0f6b4f","#f2b705","#2f80a8","#b42318","#7a5af8","#e07a1f","#4c9f70","#8c6d3f","#c2417c","#5d6f66"]};
+}
 function make(id, cfg, hasData) {
   const el = document.getElementById(id);
+  if (!el) return;                                                   // already replaced by the empty-state message
+  const old = Chart.getChart(el); if (old) old.destroy();
   if (!hasData) { el.parentElement.innerHTML = '<div class="empty h-100 d-flex align-items-center justify-content-center">No data yet</div>'; return; }
   new Chart(el, cfg);
 }
-const opts = {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: "bottom"}, tooltip: {callbacks: {label: c => " " + (c.dataset.label ? c.dataset.label + ": " : "") + kes(c.parsed.y ?? c.parsed)}}}};
-const sum = a => a.reduce((x, y) => x + y, 0);
-make("chIncExp", {type: "bar", data: {labels: D.months, datasets: [{label: "Income", data: D.income, backgroundColor: "#0f6b4f"}, {label: "Expenses", data: D.expenses, backgroundColor: "#f2b705"}]}, options: opts}, sum(D.income) + sum(D.expenses) > 0);
-make("chCat", {type: "doughnut", data: {labels: D.cat_labels, datasets: [{data: D.cat_values, backgroundColor: PAL}]}, options: {...opts, plugins: {legend: {position: "right"}, tooltip: {callbacks: {label: c => " " + c.label + ": " + kes(c.parsed)}}}}}, D.cat_values.length > 0);
-make("chTrend", {type: "line", data: {labels: D.trend_labels, datasets: [{label: "Spent", data: D.trend_values, borderColor: "#0f6b4f", backgroundColor: "rgba(15,107,79,.12)", fill: true, tension: .25}]}, options: {...opts, plugins: {legend: {display: false}, tooltip: opts.plugins.tooltip}}}, sum(D.trend_values) > 0);
-make("chBudget", {type: "bar", data: {labels: D.budget_labels, datasets: [{label: "Limit", data: D.budget_alloc, backgroundColor: "#cfd9d3"}, {label: "Actual", data: D.budget_actual, backgroundColor: "#0f6b4f"}]}, options: {...opts, indexAxis: "y"}}, D.budget_labels.length > 0);
-make("chSave", {type: "bar", data: {labels: D.goal_labels, datasets: [{label: "Progress %", data: D.goal_progress, backgroundColor: "#7a5af8"}]}, options: {...opts, indexAxis: "y", scales: {x: {min: 0, max: 100}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => " " + c.parsed.x + "%"}}}}}, D.goal_labels.length > 0);
+function build() {
+  const C = colors();
+  Chart.defaults.color = C.text; Chart.defaults.borderColor = C.grid;
+  const opts = {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: "bottom"}, tooltip: {callbacks: {label: c => " " + (c.dataset.label ? c.dataset.label + ": " : "") + kes(c.parsed.y ?? c.parsed)}}}};
+  make("chIncExp", {type: "bar", data: {labels: D.months, datasets: [{label: "Income", data: D.income, backgroundColor: C.main}, {label: "Expenses", data: D.expenses, backgroundColor: C.gold}]}, options: opts}, sum(D.income) + sum(D.expenses) > 0);
+  make("chCat", {type: "doughnut", data: {labels: D.cat_labels, datasets: [{data: D.cat_values, backgroundColor: C.pal, borderColor: isDark() ? "#17211d" : "#ffffff"}]}, options: {...opts, plugins: {legend: {position: "right"}, tooltip: {callbacks: {label: c => " " + c.label + ": " + kes(c.parsed)}}}}}, D.cat_values.length > 0);
+  make("chTrend", {type: "line", data: {labels: D.trend_labels, datasets: [{label: "Spent", data: D.trend_values, borderColor: C.line, backgroundColor: C.fill, fill: true, tension: .25}]}, options: {...opts, plugins: {legend: {display: false}, tooltip: opts.plugins.tooltip}}}, sum(D.trend_values) > 0);
+  make("chBudget", {type: "bar", data: {labels: D.budget_labels, datasets: [{label: "Limit", data: D.budget_alloc, backgroundColor: C.limit}, {label: "Actual", data: D.budget_actual, backgroundColor: C.main}]}, options: {...opts, indexAxis: "y"}}, D.budget_labels.length > 0);
+  make("chSave", {type: "bar", data: {labels: D.goal_labels, datasets: [{label: "Progress %", data: D.goal_progress, backgroundColor: C.save}]}, options: {...opts, indexAxis: "y", scales: {x: {min: 0, max: 100}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => " " + c.parsed.x + "%"}}}}}, D.goal_labels.length > 0);
+}
+build();
+document.addEventListener("themechange", build);                     // redraw with the right colours when the theme changes
 // Transaction table search + filter
 const tx = document.getElementById("txTable");
 function filterTx() { const q = document.getElementById("txSearch").value.toLowerCase(), k = document.getElementById("txKind").value;

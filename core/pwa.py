@@ -11,7 +11,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 
-PWA_VERSION = "v1"        # change this to make every installed copy drop its old cached files
+PWA_VERSION = "v2"        # change this to make every installed copy drop its old cached files
 
 
 @require_GET

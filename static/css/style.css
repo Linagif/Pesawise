@@ -1,35 +1,70 @@
-:root{--pw-ink:#0b2e24;--pw-green:#0f6b4f;--pw-green-dark:#0a5440;--pw-gold:#f2b705;--pw-bg:#f2f5f2;--pw-line:#dde5df;--pw-text:#17251f;--pw-muted:#5d6f66;--sidebar-w:250px}
+/* ===== THEME VARIABLES =====
+   Light is the default. Dark applies when <html data-bs-theme="dark"> (set by the theme script, see static/js/theme.js).
+   Every text/background pair below is checked for WCAG contrast by core/test_theme.py. */
+:root{
+  --pw-ink:#0b2e24;--pw-green:#0f6b4f;--pw-green-dark:#0a5440;--pw-gold:#f2b705;--sidebar-w:250px;
+  --pw-bg:#f2f5f2;--pw-surface:#ffffff;--pw-text:#17251f;--pw-muted:#5d6f66;--pw-line:#dde5df;
+  --pw-link:#0f6b4f;--pw-in:#0f6b4f;--pw-out:#b42318;--pw-save:#6d4ae6;
+  --pw-track:#e4ebe6;--pw-topbar:rgba(242,245,242,.94);
+}
+[data-bs-theme="dark"]{
+  --pw-bg:#0f1714;--pw-surface:#17211d;--pw-text:#e6efe9;--pw-muted:#9db0a6;--pw-line:#2a3832;
+  --pw-link:#5fd391;--pw-in:#5fd391;--pw-out:#ff8a80;--pw-save:#b9a6ff;
+  --pw-track:#2a3832;--pw-topbar:rgba(15,23,20,.94);
+  --bs-body-bg:var(--pw-bg);--bs-body-color:var(--pw-text);--bs-border-color:var(--pw-line);
+  --bs-secondary-color:var(--pw-muted);
+}
+
 html{scroll-behavior:smooth}
 body{font-family:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--pw-bg);color:var(--pw-text);font-variant-numeric:tabular-nums}
 h1,h2,h3,h4,h5{font-weight:700;letter-spacing:-.01em}
-a{color:var(--pw-green)}
+a{color:var(--pw-link)}
 .text-muted,.form-text{color:var(--pw-muted)!important}
-.btn-primary{--bs-btn-bg:var(--pw-green);--bs-btn-border-color:var(--pw-green);--bs-btn-hover-bg:var(--pw-green-dark);--bs-btn-hover-border-color:var(--pw-green-dark);--bs-btn-active-bg:var(--pw-green-dark);--bs-btn-active-border-color:var(--pw-green-dark);--bs-btn-disabled-bg:var(--pw-green);--bs-btn-disabled-border-color:var(--pw-green)}
-.btn-outline-primary{--bs-btn-color:var(--pw-green);--bs-btn-border-color:var(--pw-green);--bs-btn-hover-bg:var(--pw-green);--bs-btn-hover-border-color:var(--pw-green);--bs-btn-active-bg:var(--pw-green)}
+.btn-primary{--bs-btn-bg:var(--pw-green);--bs-btn-border-color:var(--pw-green);--bs-btn-color:#fff;--bs-btn-hover-bg:var(--pw-green-dark);--bs-btn-hover-border-color:var(--pw-green-dark);--bs-btn-hover-color:#fff;--bs-btn-active-bg:var(--pw-green-dark);--bs-btn-active-border-color:var(--pw-green-dark);--bs-btn-disabled-bg:var(--pw-green);--bs-btn-disabled-border-color:var(--pw-green)}
+.btn-outline-primary{--bs-btn-color:var(--pw-link);--bs-btn-border-color:var(--pw-link);--bs-btn-hover-bg:var(--pw-green);--bs-btn-hover-border-color:var(--pw-green);--bs-btn-hover-color:#fff;--bs-btn-active-bg:var(--pw-green);--bs-btn-active-color:#fff}
 .btn-spend{background:var(--pw-gold);border-color:var(--pw-gold);color:#2b2100;font-weight:700}
 .btn-spend:hover{background:#dba600;border-color:#dba600;color:#2b2100}
-.form-control:focus,.form-select:focus,.btn:focus-visible,.nav-link:focus-visible{box-shadow:0 0 0 .2rem rgba(15,107,79,.25);border-color:var(--pw-green)}
+.form-control:focus,.form-select:focus,.btn:focus-visible,.nav-link:focus-visible{box-shadow:0 0 0 .2rem rgba(15,107,79,.35);border-color:var(--pw-green)}
+
 /* layout */
-.topbar{position:sticky;top:0;z-index:100;background:rgba(242,245,242,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--pw-line);padding:.6rem 1.25rem;display:flex;align-items:center;gap:.5rem;justify-content:space-between}
+.topbar{position:sticky;top:0;z-index:100;background:var(--pw-topbar);backdrop-filter:blur(6px);border-bottom:1px solid var(--pw-line);padding:.6rem 1.25rem;display:flex;align-items:center;gap:.5rem;justify-content:space-between}
 .app-main{padding:1.5rem 1.25rem 3rem;max-width:1400px}
 .auth-wrap{max-width:460px;margin:4vh auto;padding:1rem}
-.auth-brand{font-weight:800;font-size:1.8rem;text-align:center;color:var(--pw-ink)}.auth-brand span{color:var(--pw-gold)}
+.auth-brand{font-weight:800;font-size:1.8rem;text-align:center;color:var(--pw-text)}.auth-brand span{color:var(--pw-gold)}
+
 /* surfaces */
-.card{border:1px solid var(--pw-line);border-radius:12px;box-shadow:none}
+.card{--bs-card-bg:var(--pw-surface);--bs-card-color:var(--pw-text);--bs-card-cap-color:var(--pw-text);border:1px solid var(--pw-line);border-radius:12px;box-shadow:none;background-color:var(--pw-surface);color:var(--pw-text)}
 .card-header{background:transparent;border-bottom:1px solid var(--pw-line);font-weight:700}
+.modal-content{--bs-modal-bg:var(--pw-surface);--bs-modal-color:var(--pw-text);--bs-modal-border-color:var(--pw-line)}
+.list-group{--bs-list-group-bg:var(--pw-surface);--bs-list-group-color:var(--pw-text);--bs-list-group-border-color:var(--pw-line)}
 .stat .label{font-size:.85rem;color:var(--pw-muted)}
 .stat .value{font-size:1.45rem;font-weight:800;line-height:1.2;word-break:break-word}
-.stat.neg .value{color:#b42318}
-.progress{background:#e4ebe6;border-radius:99px}
+.stat.neg .value{color:var(--pw-out)}
+.progress{background:var(--pw-track);border-radius:99px}
 .chart-box{position:relative;height:260px}
 .radio-row>div{display:flex;gap:1.25rem}
 .radio-row label{margin-left:.3rem}
+.table{--bs-table-bg:transparent}   /* tables take the card colour instead of a darker band in dark mode */
 .table>:not(caption)>*>*{padding:.55rem .6rem}
 .table thead th{font-weight:600;color:var(--pw-muted);font-size:.85rem;border-bottom-color:var(--pw-line)}
-.amount-in{color:#0f6b4f;font-weight:700}.amount-out{color:#b42318;font-weight:700}.amount-save{color:#7a5af8;font-weight:700}
-.empty{border:2px dashed var(--pw-line);border-radius:12px;padding:2rem;text-align:center;color:var(--pw-muted);background:#fff}
+.amount-in{color:var(--pw-in);font-weight:700}.amount-out{color:var(--pw-out);font-weight:700}.amount-save{color:var(--pw-save);font-weight:700}
+.empty{border:2px dashed var(--pw-line);border-radius:12px;padding:2rem;text-align:center;color:var(--pw-muted);background:var(--pw-surface)}
 
-/* ---------- SIDEBAR (kept together, loaded last so it wins over Bootstrap's offcanvas rules) ---------- */
+/* light-only Bootstrap helpers that look too bright in dark mode */
+[data-bs-theme="dark"] .btn-light{--bs-btn-bg:#243029;--bs-btn-border-color:#2f3e37;--bs-btn-color:var(--pw-text);--bs-btn-hover-bg:#2e3c35;--bs-btn-hover-border-color:#3a4a43;--bs-btn-hover-color:#fff;--bs-btn-active-bg:#34443c;--bs-btn-active-color:#fff}
+[data-bs-theme="dark"] .text-bg-light{background-color:#2a3832!important;color:var(--pw-text)!important}
+[data-bs-theme="dark"] .btn-outline-secondary{--bs-btn-color:var(--pw-muted);--bs-btn-border-color:#3a4a43;--bs-btn-hover-bg:#2a3832;--bs-btn-hover-color:#fff}
+[data-bs-theme="dark"] .btn-outline-danger{--bs-btn-color:#ff8a80;--bs-btn-border-color:#ff8a80;--bs-btn-hover-bg:#b42318;--bs-btn-hover-color:#fff}
+[data-bs-theme="dark"] .text-danger{color:#ff8a80!important}
+[data-bs-theme="dark"] .btn-close{filter:invert(1) grayscale(100%) brightness(200%)}
+
+/* theme menu (topbar, a floating copy on the login pages, and the Appearance card on the profile page) */
+.dropdown-menu{--bs-dropdown-bg:var(--pw-surface);--bs-dropdown-color:var(--pw-text);--bs-dropdown-border-color:var(--pw-line);--bs-dropdown-link-color:var(--pw-text);--bs-dropdown-link-hover-bg:var(--pw-track);--bs-dropdown-link-hover-color:var(--pw-text);--bs-dropdown-link-active-bg:var(--pw-green);--bs-dropdown-link-active-color:#fff;min-width:11rem}
+.dropdown-item .check{visibility:hidden}.dropdown-item.active .check{visibility:visible}
+.theme-toggle{display:inline-flex;align-items:center;gap:.35rem}
+.theme-float{position:fixed;top:.75rem;right:.75rem;z-index:300}
+
+/* ---------- SIDEBAR (dark in both themes; loaded last so it wins over Bootstrap's offcanvas rules) ---------- */
 .sidebar{--bs-offcanvas-bg:#0b2e24;--bs-offcanvas-color:#d6e6de;background-color:#0b2e24;color:#d6e6de}
 .sidebar .brand{font-weight:800;font-size:1.35rem;color:#fff;text-decoration:none;padding:1.25rem 1.25rem .5rem;display:block}
 .sidebar .brand span{color:var(--pw-gold)}
@@ -37,6 +72,7 @@ a{color:var(--pw-green)}
 .sidebar .nav-link{color:#cfe0d8;padding:.55rem 1.25rem;display:flex;gap:.7rem;align-items:center;border-left:3px solid transparent;width:100%;text-align:left;background:none;border-top:0;border-right:0;border-bottom:0}
 .sidebar .nav-link:hover{background:rgba(255,255,255,.06);color:#fff}
 .sidebar .nav-link.active{background:rgba(255,255,255,.10);color:#fff;border-left-color:var(--pw-gold);font-weight:700}
+[data-bs-theme="dark"] .sidebar{border-right:1px solid var(--pw-line)}
 @media (min-width:992px){
   .sidebar.offcanvas-lg{
     position:fixed!important;top:0;bottom:0;left:0;
@@ -47,5 +83,9 @@ a{color:var(--pw-green)}
   }
   .app-main,.topbar{margin-left:250px}
 }
-@media print{.sidebar,.topbar,.no-print,.btn{display:none!important}.app-main,.topbar{margin-left:0}body{background:#fff}}
+@media print{
+  .sidebar,.topbar,.no-print,.btn,.theme-float{display:none!important}
+  .app-main,.topbar{margin-left:0}
+  body,.card,.table{background:#fff!important;color:#000!important}
+}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
